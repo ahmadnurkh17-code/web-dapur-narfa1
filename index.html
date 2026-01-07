@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dapur Narfa - Enterprise Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        body { background-color: #020203; color: #e4e4e7; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
+        .glass-card { background: rgba(23, 23, 26, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar-item { transition: 0.3s; cursor: pointer; border-radius: 12px; color: #71717a; padding: 10px 14px; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; }
+        .sidebar-item:hover { color: white; background-color: rgba(249, 115, 22, 0.1); }
+        .active-menu { background: linear-gradient(90deg, #f97316, #ea580c) !important; color: white !important; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); }
+        .hidden { display: none !important; }
+        
+        /* Hero & Animations */
+        .hero-glow { background: linear-gradient(-45deg, #f97316, #92400e, #431407, #000000); background-size: 400% 400%; animation: gradient 8s ease infinite; position: relative; overflow: hidden; }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+
+        .marquee { white-space: nowrap; overflow: hidden; background: rgba(249, 115, 22, 0.1); padding: 5px 0; font-size: 10px; font-weight: 800; color: #f97316; border-bottom: 1px solid rgba(249, 115, 22, 0.2); }
+        .marquee div { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .input-group { background: #111113; border: 1px solid #2d2d35; border-radius: 10px; padding: 10px 14px; width: 100%; color: white; outline: none; font-size: 13px; }
+        label { font-size: 9px; font-weight: 800; color: #a1a1aa; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .btn-action { background: #f97316; color: white; padding: 10px; border-radius: 10px; font-weight: 800; text-transform: uppercase; font-size: 10px; text-align: center; width: 100%; cursor: pointer; border: none; transition: 0.3s; }
+        .btn-action:hover { background: #ea580c; transform: translateY(-2px); }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <div id="login-screen" class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black">
+        <div class="glass-card p-10 rounded-[2.5rem] w-full max-w-sm text-center border border-zinc-800 shadow-2xl">
+            <div class="w-16 h-16 bg-orange-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-orange-600/40 rotate-12">
+                <i class="fas fa-cookie-bite text-3xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-black uppercase text-white mb-1 italic">Narfa<span class="text-orange-500">.</span></h1>
+            <p class="text-[10px] text-zinc-500 mb-8 font-bold italic uppercase tracking-widest">Dapur Narfa, Camilan Favorit Keluarga 😋</p>
+            <div class="space-y-4">
+                <input type="text" id="login-user" placeholder="Username" class="input-group text-center">
+                <input type="password" id="login-pass" placeholder="Password Admin: 123" class="input-group text-center">
+                <div class="flex gap-2">
+                    <button onclick="auth('customer')" class="flex-1 bg-zinc-800 py-4 rounded-xl font-bold text-[10px] uppercase text-white hover:bg-zinc-700 transition">Pelanggan</button>
+                    <button onclick="auth('admin')" class="flex-1 bg-orange-600 py-4 rounded-xl font-bold text-[10px] uppercase text-white hover:bg-orange-500 transition shadow-lg shadow-orange-600/20">Admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <aside id="sidebar" class="w-64 border-r border-zinc-900 p-6 flex flex-col hidden glass-card">
+        <div class="mb-10 flex items-center gap-3">
+            <img id="side-img" src="" class="w-10 h-10 rounded-xl object-cover border border-orange-500/50 bg-zinc-800">
+            <div>
+                <p id="side-name" class="font-black text-xs truncate w-32"></p>
+                <p class="text-[8px] text-orange-500 font-bold uppercase italic">Official Staff</p>
+            </div>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <div onclick="showPage('beranda')" id="menu-beranda" class="sidebar-item active-menu"><i class="fas fa-home text-xs"></i> Beranda</div>
+            <div onclick="showPage('katalog')" id="menu-katalog" class="sidebar-item role-customer hidden"><i class="fas fa-utensils text-xs"></i> Katalog Menu</div>
+            <div onclick="showPage('riwayat')" id="menu-riwayat" class="sidebar-item role-customer hidden"><i class="fas fa-history text-xs"></i> Riwayat Pesanan</div>
+            <div onclick="showPage('pesanan-admin')" id="menu-pesanan-admin" class="sidebar-item role-admin hidden"><i class="fas fa-receipt text-orange-500 text-xs"></i> Pesanan Masuk</div>
+            <div onclick="showPage('pengaturan')" id="menu-pengaturan" class="sidebar-item role-admin hidden"><i class="fas fa-sliders-h text-orange-500 text-xs"></i> Pengaturan Toko</div>
+            <div onclick="showPage('profil')" id="menu-profil" class="sidebar-item"><i class="fas fa-user-circle text-xs"></i> Profil Saya</div>
+        </nav>
+        <button onclick="location.reload()" class="sidebar-item text-red-500 mt-auto opacity-50 text-[10px] font-black uppercase"><i class="fas fa-power-off"></i> Keluar Sesi</button>
+    </aside>
+
+    <main id="main-app" class="flex-1 overflow-y-auto hidden">
+        <div class="marquee">
+            <div>
+                ✨ DAPUR NARFA: HIGIENIS & LEZAT ✨ PROMO TERBATAS: BELI 5 GRATIS 1 UNTUK DONAT KENTANG! ✨ PESANAN ANDA SEDANG KAMI PROSES DENGAN CINTA ✨ 
+            </div>
+        </div>
+
+        <header class="h-16 border-b border-zinc-900 flex items-center justify-between px-8 sticky top-0 glass-card z-50">
+            <div id="shop-status-tag" class="text-[8px] font-black px-3 py-1 rounded-full"></div>
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p id="nav-name" class="font-black text-xs"></p>
+                    <p id="nav-role" class="text-[8px] text-zinc-500 font-bold uppercase"></p>
+                </div>
+                <img id="nav-img" class="w-8 h-8 rounded-full border border-orange-500 object-cover bg-zinc-800">
+            </div>
+        </header>
+
+        <div class="p-8">
+            <section id="page-beranda-customer" class="hidden">
+                <div class="hero-glow p-16 rounded-[3rem] text-center shadow-2xl mb-8 border border-white/10">
+                    <div class="relative z-10">
+                        <i class="fas fa-cookie-bite floating text-4xl text-white/20 absolute -top-10 -left-10"></i>
+                        <h2 class="text-4xl font-black italic mb-2 text-white uppercase tracking-tighter">Lezatnya Nyata</h2>
+                        <p class="text-orange-100 mb-8 font-bold italic opacity-80 uppercase tracking-widest text-[10px]">Dapur Narfa, Camilan Favorit Keluarga 😋</p>
+                        <button onclick="checkDataBeforeKatalog()" class="bg-white text-black px-10 py-3 rounded-full font-black text-[10px] uppercase shadow-2xl hover:bg-orange-500 hover:text-white transition-all">Mulai Belanja <i class="fas fa-shopping-cart ml-2"></i></button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="glass-card p-6 rounded-3xl text-center border-t-2 border-orange-500"><i class="fas fa-certificate text-orange-500 mb-2"></i><p class="text-[9px] font-black uppercase">Premium Quality</p></div>
+                    <div class="glass-card p-6 rounded-3xl text-center border-t-2 border-orange-500"><i class="fas fa-truck text-orange-500 mb-2"></i><p class="text-[9px] font-black uppercase">Fast Delivery</p></div>
+                    <div class="glass-card p-6 rounded-3xl text-center border-t-2 border-orange-500"><i class="fas fa-smile text-orange-500 mb-2"></i><p class="text-[9px] font-black uppercase">Best Service</p></div>
+                </div>
+            </section>
+
+            <section id="page-beranda-admin" class="hidden">
+                <div class="hero-glow p-12 rounded-[2.5rem] mb-8 shadow-xl flex items-center justify-between border border-white/10">
+                    <div>
+                        <h2 class="text-3xl font-black italic mb-1 text-white uppercase">SELAMAT DATANG ADMIN</h2>
+                        <p class="text-orange-100 opacity-70 italic font-bold text-[9px] uppercase tracking-widest">Dapur Narfa, Camilan Favorit Keluarga 😋</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[8px] font-black text-white/50 uppercase">Update Otomatis</p>
+                        <p class="text-xs font-black text-green-400 italic">Sistem Online</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-4 mb-8">
+                    <div class="glass-card p-4 rounded-2xl border-l-4 border-orange-500"><p class="text-[8px] font-black text-zinc-500 uppercase">Total Pesanan</p><p id="stat-total" class="text-xl font-black italic">0</p></div>
+                    <div class="glass-card p-4 rounded-2xl border-l-4 border-blue-500"><p class="text-[8px] font-black text-zinc-500 uppercase">Omzet Masuk</p><p id="stat-omzet" class="text-xl font-black italic text-blue-400">Rp 0</p></div>
+                    <div class="glass-card p-4 rounded-2xl border-l-4 border-green-500"><p class="text-[8px] font-black text-zinc-500 uppercase">Selesai</p><p id="stat-done" class="text-xl font-black italic text-green-400">0</p></div>
+                    <div class="glass-card p-4 rounded-2xl border-l-4 border-red-500"><p class="text-[8px] font-black text-zinc-500 uppercase">Antrian</p><p id="stat-pending" class="text-xl font-black italic text-red-400">0</p></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="glass-card p-6 rounded-[2rem]"><h3 class="text-[10px] font-black uppercase text-orange-500 mb-4 italic tracking-widest border-b border-white/5 pb-2">Analisis Menu Terpopuler</h3><div id="admin-top-products" class="space-y-3"></div></div>
+                    <div class="glass-card p-6 rounded-[2rem]"><h3 class="text-[10px] font-black uppercase text-orange-500 mb-4 italic tracking-widest border-b border-white/5 pb-2 text-center">Log Aktivitas Terbaru</h3><div id="admin-recent-activity" class="space-y-3"></div></div>
+                </div>
+            </section>
+
+            <section id="page-katalog" class="hidden">
+                <h2 class="text-xl font-black italic mb-6 uppercase">Varian <span class="text-orange-500">Menu</span></h2>
+                <div id="grid-produk" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+            </section>
+
+            <section id="page-pesanan-admin" class="hidden space-y-3"></section>
+            <section id="page-riwayat" class="hidden space-y-3"></section>
+
+            <section id="page-profil" class="hidden">
+                <div class="max-w-2xl mx-auto glass-card rounded-[2.5rem] p-8 border border-white/5">
+                    <div class="flex flex-col items-center mb-10 text-center">
+                        <img id="p-img" class="w-28 h-28 rounded-2xl border-2 border-orange-500 object-cover mb-4 shadow-2xl bg-zinc-800">
+                        <h2 id="p-display-name" class="text-2xl font-black italic uppercase"></h2>
+                        <p id="p-display-role" class="text-orange-500 font-bold text-[9px] uppercase tracking-widest italic"></p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div><label>Nama Anda</label><input type="text" id="e-nama" class="input-group"></div>
+                        <div><label>Kontak WA</label><input type="text" id="e-hp" class="input-group"></div>
+                    </div>
+                    <div class="mb-4"><label>Link Foto Profil (URL)</label><input type="text" id="e-img" class="input-group"></div>
+                    <div class="mb-8"><label>Alamat Default</label><textarea id="e-alamat" class="input-group h-24"></textarea></div>
+                    <button onclick="saveProfile()" class="btn-action">Update Data Diri</button>
+                </div>
+            </section>
+
+            <section id="page-pengaturan" class="hidden">
+                <div class="max-w-xs glass-card p-8 rounded-[2rem]">
+                    <h2 class="text-xs font-black mb-6 border-b border-zinc-800 pb-3 uppercase tracking-widest">Kontrol Toko</h2>
+                    <select id="set-status" class="input-group mb-8"><option value="Buka">BUKA (OPEN)</option><option value="Tutup">TUTUP (CLOSED)</option></select>
+                    <button onclick="saveStoreSettings()" class="btn-action">Terapkan Perubahan</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="modalOrder" class="hidden fixed inset-0 bg-black/95 z-[300] flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-2xl rounded-[3rem] flex flex-col md:flex-row overflow-hidden border border-white/10 shadow-2xl">
+            <div class="flex-1 bg-zinc-900 flex flex-col items-center justify-center p-8 text-center border-r border-white/5">
+                <img id="m-img" src="" class="w-44 h-44 object-cover rounded-2xl shadow-2xl mb-4 border border-white/10">
+                <h2 id="m-nama" class="text-2xl font-black italic uppercase"></h2>
+                <p id="m-harga" class="text-orange-500 font-black text-lg"></p>
+            </div>
+            <div class="flex-1 p-8">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label>Metode</label><select id="m-metode" class="input-group"><option value="DIANTAR">DIANTAR</option><option value="DIAMBIL">DIAMBIL</option></select></div>
+                        <div><label>Pembayaran</label><select id="m-pay" class="input-group"><option value="COD">COD</option><option value="TRANSFER">TRANSFER</option></select></div>
+                    </div>
+                    <div><label>Detail Lokasi</label><textarea id="m-alamat-kirim" class="input-group h-20 text-[11px]"></textarea></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label>Kuantitas</label><input type="number" id="m-qty" value="1" min="1" class="input-group"></div>
+                        <div class="flex items-end"><button onclick="prosesCheckout()" class="btn-action">Buat Pesanan</button></div>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-full text-[9px] font-bold text-zinc-600 uppercase mt-5">Kembali</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuList = [
+            { n: "Donat Kentang", h: 3000, i: "donatkentang.jpg?w=400" },
+            { n: "Sosis Solo", h: 5800, i: "sosis solo.jpg?w=400" },
+            { n: "Kue Pukis", h: 3000, i: "kue pukis.jpg?w=400" },
+            { n: "Bolu Pisang", h: 2500, i: "bolu pisang.jpg?w=400" },
+            { n: "Donat Toping", h: 2500, i: "donat toping.jpg?w=400" },
+            { n: "Kue Lapis Surabaya", h: 2500, i: "kue lapis surabaya.jpg?w=400" },
+            { n: "Kue Pukis Mix", h: 2500, i: "kue pukis.jpg?w=400" },
+            { n: "Pie Buah", h: 2500, i: "pie buah.jpg?w=400" },
+            { n: "Nona Manis", h: 2500, i: "nona manis.jpg?w=400" }
+        ];
+
+        let storeConfig = JSON.parse(localStorage.getItem('dn_config')) || { status: 'Buka' };
+        let orders = JSON.parse(localStorage.getItem('dn_orders')) || [];
+        let users = JSON.parse(localStorage.getItem('dn_users')) || {
+            'admin': { nama: 'Falah Admin', hp: '08', alamat: 'Dapur Narfa', role: 'admin', img: 'https://i.pravatar.cc/150?u=admin' }
+        };
+        let currentUser = null;
+        let selectedProduct = null;
+
+        function auth(role) {
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value;
+            if(!u) return alert("Username diperlukan!");
+            if(role === 'admin' && p !== '123') return alert("Password Salah!");
+            if(!users[u]) {
+                users[u] = { nama: u, hp: '', alamat: '', role: role, img: 'https://i.pravatar.cc/150?u=' + u };
+                localStorage.setItem('dn_users', JSON.stringify(users));
+            }
+            currentUser = users[u];
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            initUI();
+        }
+
+        function initUI() {
+            document.getElementById('nav-name').innerText = currentUser.nama;
+            document.getElementById('side-name').innerText = currentUser.nama;
+            document.getElementById('nav-role').innerText = currentUser.role;
+            document.getElementById('nav-img').src = currentUser.img;
+            document.getElementById('side-img').src = currentUser.img;
+            document.querySelectorAll('.role-admin').forEach(el => currentUser.role === 'admin' ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            document.querySelectorAll('.role-customer').forEach(el => currentUser.role === 'customer' ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            applyStoreStatus(); renderProfile(); renderKatalog(); showPage('beranda');
+        }
+
+        function showPage(id) {
+            const pgs = ['beranda-admin', 'beranda-customer', 'katalog', 'pesanan-admin', 'riwayat', 'pengaturan', 'profil'];
+            pgs.forEach(p => document.getElementById('page-' + p)?.classList.add('hidden'));
+            let target = id;
+            if(id === 'beranda') target = currentUser.role === 'admin' ? 'beranda-admin' : 'beranda-customer';
+            document.getElementById('page-' + target).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active-menu'));
+            document.getElementById('menu-' + (id.includes('beranda') ? 'beranda' : id))?.classList.add('active-menu');
+            if(target === 'beranda-admin') renderAdminStats();
+            if(id === 'pesanan-admin' || id === 'riwayat') renderOrders();
+        }
+
+        function checkDataBeforeKatalog() {
+            if(!currentUser.hp || !currentUser.alamat) { alert("Lengkapi profil dulu!"); showPage('profil'); }
+            else { showPage('katalog'); }
+        }
+
+        function applyStoreStatus() {
+            const tag = document.getElementById('shop-status-tag');
+            tag.innerText = "TOKO " + storeConfig.status.toUpperCase();
+            tag.className = storeConfig.status === 'Buka' ? "text-[8px] font-black px-3 py-1 rounded-full border border-green-500 text-green-500 bg-green-500/10" : "text-[8px] font-black px-3 py-1 rounded-full border border-red-500 text-red-500 bg-red-500/10";
+        }
+
+        function saveStoreSettings() {
+            storeConfig.status = document.getElementById('set-status').value;
+            localStorage.setItem('dn_config', JSON.stringify(storeConfig));
+            applyStoreStatus(); alert("Selesai!");
+        }
+
+        function saveProfile() {
+            currentUser.nama = document.getElementById('e-nama').value;
+            currentUser.hp = document.getElementById('e-hp').value;
+            currentUser.alamat = document.getElementById('e-alamat').value;
+            const ni = document.getElementById('e-img').value;
+            if(ni) currentUser.img = ni;
+            users[currentUser.nama] = currentUser;
+            localStorage.setItem('dn_users', JSON.stringify(users));
+            alert("Tersimpan!"); initUI();
+        }
+
+        function renderProfile() {
+            document.getElementById('p-display-name').innerText = currentUser.nama;
+            document.getElementById('p-display-role').innerText = currentUser.role === 'admin' ? 'Owner Dapur Narfa' : 'Customer';
+            document.getElementById('p-img').src = currentUser.img;
+            document.getElementById('e-nama').value = currentUser.nama;
+            document.getElementById('e-hp').value = currentUser.hp;
+            document.getElementById('e-alamat').value = currentUser.alamat;
+        }
+
+        function renderKatalog() {
+            document.getElementById('grid-produk').innerHTML = menuList.map(m => `
+                <div onclick="openOrder('${m.n}', ${m.h}, '${m.i}')" class="glass-card rounded-[1.5rem] overflow-hidden cursor-pointer hover:border-orange-500 transition-all duration-300">
+                    <img src="${m.i}" class="w-full h-32 object-cover">
+                    <div class="p-3"><h4 class="font-black text-[10px] uppercase truncate italic">${m.n}</h4><p class="text-orange-500 font-black text-[10px]">Rp ${m.h.toLocaleString()}</p></div>
+                </div>
+            `).join('');
+        }
+
+        function openOrder(n, h, i) {
+            if(storeConfig.status === 'Tutup') return alert("Toko sedang tutup!");
+            selectedProduct = { n, h, i };
+            document.getElementById('m-nama').innerText = n;
+            document.getElementById('m-harga').innerText = "Rp " + h.toLocaleString();
+            document.getElementById('m-img').src = i;
+            document.getElementById('m-alamat-kirim').value = currentUser.alamat;
+            document.getElementById('modalOrder').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('modalOrder').classList.add('hidden'); }
+
+        function prosesCheckout() {
+            const order = {
+                id: "#DN" + Math.floor(1000 + Math.random() * 9000),
+                user: currentUser.nama,
+                hp: currentUser.hp,
+                item: selectedProduct.n,
+                qty: document.getElementById('m-qty').value,
+                total: selectedProduct.h * document.getElementById('m-qty').value,
+                metode: document.getElementById('m-metode').value,
+                pay: document.getElementById('m-pay').value,
+                alamat: document.getElementById('m-alamat-kirim').value,
+                status: "BELUM DIANTAR"
+            };
+            orders.push(order);
+            localStorage.setItem('dn_orders', JSON.stringify(orders));
+            alert("Pesanan Masuk!"); closeModal(); showPage('riwayat');
+        }
+
+        function updateStatus(id) {
+            const idx = orders.findIndex(o => o.id === id);
+            orders[idx].status = "SUDAH DIANTAR / SELESAI";
+            localStorage.setItem('dn_orders', JSON.stringify(orders));
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const isAdm = currentUser.role === 'admin';
+            const cont = isAdm ? document.getElementById('page-pesanan-admin') : document.getElementById('page-riwayat');
+            const data = isAdm ? orders : orders.filter(o => o.user === currentUser.nama);
+            cont.innerHTML = `<h2 class="text-lg font-black italic mb-6 uppercase tracking-widest">${isAdm ? 'Monitoring Antrean' : 'Pesanan Saya'}</h2>` + 
+            data.slice().reverse().map(o => `
+                <div class="glass-card p-5 rounded-[1.5rem] border-l-[10px] ${o.status === 'BELUM DIANTAR' ? 'border-red-600' : 'border-green-600'} flex justify-between items-center mb-3">
+                    <div class="text-left">
+                        <div class="flex items-center gap-2 mb-1"><span class="bg-orange-600 text-white text-[8px] px-2 py-0.5 rounded font-black">${o.id}</span><h4 class="font-black text-sm italic uppercase">${o.item} x${o.qty}</h4></div>
+                        <p class="text-[9px] text-zinc-500 font-bold uppercase">${o.user} | ${o.status}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-black mb-2">Rp ${o.total.toLocaleString()}</p>
+                        ${isAdm && o.status === 'BELUM DIANTAR' ? `<button onclick="updateStatus('${o.id}')" class="bg-green-600 px-4 py-2 rounded-lg text-[8px] font-black text-white">Selesaikan</button>` : ''}
+                    </div>
+                </div>
+            `).join('') || '<p class="text-[9px] italic text-zinc-600">Belum ada data.</p>';
+        }
+
+        function renderAdminStats() {
+            const total = orders.length;
+            const omzet = orders.reduce((a, b) => a + b.total, 0);
+            const done = orders.filter(o => o.status !== 'BELUM DIANTAR').length;
+            const pending = total - done;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-omzet').innerText = "Rp " + omzet.toLocaleString();
+            document.getElementById('stat-done').innerText = done;
+            document.getElementById('stat-pending').innerText = pending;
+
+            document.getElementById('admin-top-products').innerHTML = menuList.slice(0,3).map(m => `
+                <div class="flex items-center gap-3 p-3 bg-zinc-900/50 rounded-xl border border-zinc-800"><img src="${m.i}" class="w-10 h-10 rounded-lg object-cover"><div class="flex-1 text-left"><h4 class="text-[9px] font-black uppercase italic">${m.n}</h4><p class="text-orange-500 font-black text-[8px]">⭐ HIGH DEMAND</p></div></div>
+            `).join('');
+            document.getElementById('admin-recent-activity').innerHTML = orders.slice(-3).reverse().map(o => `
+                <div class="flex justify-between items-center text-[9px] p-2 border-b border-zinc-900"><span class="text-zinc-400 font-bold">${o.user}</span><span class="font-black ${o.status === 'BELUM DIANTAR' ? 'text-red-500' : 'text-green-500'} italic uppercase text-[7px]">${o.status}</span></div>
+            `).join('') || '<p class="text-[9px] italic text-zinc-600">Kosong</p>';
+        }
+    </script>
+</body>
+</html>
